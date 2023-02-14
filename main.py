@@ -20,6 +20,18 @@ class Launchable:
     def encode(self):
         pass
 
+class Category:
+    def __init__(self, name, *launchables):
+        self.launchables = launchables
+        self.name = name
+    
+    def add_launchables(self, *launchables):
+        self.launchables.extend(launchables)
+    
+    def open_all(self):
+        for launchable in self.launchables:
+            launchable.open()
+
 class MultiLaunch(Launchable):
     def __init__(self, name, *launchables):
         self.launchables = launchables
@@ -224,6 +236,23 @@ def open_add_command_window():
     options_frame.pack(fill='x')
     buttons_frame.pack(fill='x')
 
+def open_add_multi_window():
+    add_multi_window = tk.Toplevel(root)
+    add_multi_window.geometry('350x450')
+
+    options_frame = ttk.Frame(add_multi_window)
+    add_multi_frame = ttk.Frame(add_multi_window)
+    buttons_frame = ttk.Frame(add_multi_window)
+
+    def create_multi():
+        pass
+
+    def cancel():
+        add_multi_window.destroy()
+
+    ttk.Button(buttons_frame, text='Create', command=create_multi).pack(pady=50)
+    ttk.Button(buttons_frame, text='Cancel', command=cancel).pack(pady=50)
+
 # funguje
 # subprocess.run('start cmd -Argument"/c timeout 5"', shell=True)
 # TODO: pro powershell a bash
@@ -238,6 +267,8 @@ root.geometry('600x450')
 add_button = ttk.Button(root, text='Add Executable', command=open_add_exec_window)
 add_button.pack()
 add_button = ttk.Button(root, text='Add Command', command=open_add_command_window)
+add_button.pack()
+add_button = ttk.Button(root, text='Add Multi Launch', command=open_add_multi_window)
 add_button.pack()
 
 launches_frame = ttk.Frame(root)
