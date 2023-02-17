@@ -86,6 +86,8 @@ def encode_launch(launch):
 
 # Načte kategorie ze souboru daným globální proměnnou `save_file`
 # do globální proměnné `categories`
+# Pokud nelze načíst kategorie nebo je seznam prázdný, tak vrátí seznam se
+# základní kategorií s jménem 'Main'
 def load_categories():
 	try:
 		with open(SAVE_FILE, mode='r', encoding='utf-8') as save_file:
@@ -100,6 +102,8 @@ def load_categories():
 		print(f"Can't load save file '{SAVE_FILE}'")
 	except json.JSONDecodeError:
 		print(f"Save file '{SAVE_FILE}' isn't in json format.")
+
+	return [Category('Main')]
 
 
 # Dekóduje kategorii z JSON formátu do třídy `Category`
@@ -172,8 +176,8 @@ def layout_ui(options_frame):
 	layout_frame = ttk.Frame(options_frame)
 	layout_frame['borderwidth'] = 5
 	layout_frame['relief'] = 'sunken'
-	ttk.Button(layout_frame, text='vertical', command=lambda: set_layout('vertical')).pack(side=tk.LEFT)
-	ttk.Button(layout_frame, text='horizontal', command=lambda: set_layout('horizontal')).pack(side=tk.LEFT)
+	ttk.Button(layout_frame, text='Vertical', command=lambda: set_layout('vertical')).pack(side=tk.LEFT)
+	ttk.Button(layout_frame, text='Horizontal', command=lambda: set_layout('horizontal')).pack(side=tk.LEFT)
 	layout_frame.pack(anchor=tk.W)
 
 
@@ -204,7 +208,7 @@ def set_layout(change : str):
 # Vytvoří UI na levé straně, kde jsou rozložené kategorie a jejich spustitelné
 # soubory s tlačítkem pro přidání kategorie
 def category_ui():
-	add_category_btn = ttk.Button(categories_frame, text='Add category', command=window_add_category)
+	add_category_btn = ttk.Button(categories_frame, text='Add Category', command=window_add_category)
 	add_category_btn.pack(anchor=tk.W)
 	
 	categories_frame.pack(expand=True, fill='both', side=tk.LEFT)
@@ -216,7 +220,7 @@ def category_ui():
 def recreate_ui_data():
 	reset_frame(categories_container)
 
-	ui_add_categories_to_frame(categories, categories_container)
+	ui_add_categories_to_frame(categories_container)
 	
 	save_categories()
 
@@ -228,14 +232,14 @@ def reset_frame(frame):
 
 
 # Přidá UI kategorie do framu
-def ui_add_categories_to_frame(categories, frame):
+def ui_add_categories_to_frame(frame):
 	for index, category in enumerate(categories):
 		ui_add_category_to_frame(frame, index, category)
 
 
 # Přidá UI kategorii do framu
-# Přidá tlačítka pro přidání spustitelného souboru a tlačítko pro spuštění
-# všech spustitelných souborů v kategorii
+# Přidá tlačítka pro přidání spustitelného souboru, tlačítko pro spuštění
+# všech spustitelných souborů v kategorii a odstranění kategorie
 def ui_add_category_to_frame(frame, category_index, category):
 	cat_frame = ttk.LabelFrame(frame, text=category.name)
 	cat_frame.pack(anchor=tk.W)
@@ -243,10 +247,17 @@ def ui_add_category_to_frame(frame, category_index, category):
 	options_frame = ttk.Frame(cat_frame)
 	options_frame.pack(anchor=tk.NW)
 
-	ttk.Button(options_frame, text='+', command=lambda category=category : window_add_launchable(category)).pack(side=tk.LEFT)
+	ttk.Button(options_frame, text='Add', command=lambda category=category : window_add_launchable(category)).pack(side=tk.LEFT)
 	ttk.Button(options_frame, text='Open All', command=lambda category=category : category.open_all()).pack(side=tk.LEFT)
+	ttk.Button(options_frame, text='Delete', command=lambda category_index=category_index : delete_category(category_index)).pack(side=tk.LEFT)
 
 	ui_add_launches_to_frame(cat_frame, category_index, category)
+
+
+# Odstraní kategorii z globálního seznamu a resetuje ui
+def delete_category(category_index):
+	categories.pop(category_index)
+	recreate_ui_data()
 
 
 # Přidá do framu UI spustitelné soubory v kategorii
