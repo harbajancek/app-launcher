@@ -70,7 +70,7 @@ def save_categories():
 
 
 # Zakóduje jednotlivou kategorii do JSON formátu
-def encode_category(category):
+def encode_category(category : Category):
 	return {'name':category.name, 'launchables':[encode_launch(launch) for launch in category.launchables]}
 
 
@@ -89,25 +89,26 @@ def encode_launch(launch):
 # Pokud nelze načíst kategorie nebo je seznam prázdný, tak vrátí seznam se
 # základní kategorií s jménem 'Main'
 def load_categories():
+	global categories
 	try:
 		with open(SAVE_FILE, mode='r', encoding='utf-8') as save_file:
 			temp_categories = json.load(save_file)
 			categories = [decode_category(category) for category in temp_categories]
 
 			if len(categories) == 0:
-				return [Category('Main')]
+				categories = [Category('Main')]
 			
-			return categories
+			return
 	except IOError:
 		print(f"Can't load save file '{SAVE_FILE}'")
 	except json.JSONDecodeError:
 		print(f"Save file '{SAVE_FILE}' isn't in json format.")
 
-	return [Category('Main')]
+	categories = [Category('Main')]
 
 
 # Dekóduje kategorii z JSON formátu do třídy `Category`
-def decode_category(category):
+def decode_category(category : Category):
 	return Category(category['name'], *[decode_launch(launch) for launch in category['launchables']])
 
 
@@ -125,7 +126,6 @@ def decode_launch(launch):
 ## MAIN WINDOW ##
 
 # Vytvoří základní neměnný UI
-# 
 def starting_ui():
 	root.geometry('600x450')
 
@@ -208,6 +208,10 @@ def set_layout(change : str):
 # Vytvoří UI na levé straně, kde jsou rozložené kategorie a jejich spustitelné
 # soubory s tlačítkem pro přidání kategorie
 def category_ui():
+	categories_frame = ttk.Frame(root)
+	global categories_container
+	categories_container = ttk.Frame(categories_frame)
+
 	add_category_btn = ttk.Button(categories_frame, text='Add Category', command=window_add_category)
 	add_category_btn.pack(anchor=tk.W)
 	
@@ -329,7 +333,7 @@ def window_add_category():
 	ttk.Label(add_cat_window, text='Category name:').pack(anchor=tk.W)
 	entry_name_text = tk.StringVar()
 	ttk.Entry(add_cat_window, textvariable=entry_name_text).pack(anchor=tk.W)
-
+	
 	
 	# Vytvoří kategorii, přetvoří UI a zničí okno
 	def create_category():
@@ -437,7 +441,6 @@ def main():
 	global current_sort
 	global descending_sort
 	global layout
-	global categories_frame
 	global categories_container
 
 	# počáteční proměnné v globálních proměnných
@@ -445,13 +448,11 @@ def main():
 	current_sort = 'newest'
 	descending_sort = True
 	layout = 'vertical'
-	categories = load_categories()
+	load_categories()
 
 	# vytvoření základního okna
 	root = tk.Tk()
 	root.title('app-launcher')
-	categories_frame = ttk.Frame(root)
-	categories_container = ttk.Frame(categories_frame)
 	starting_ui()
 
 	# integrovat data do UI
